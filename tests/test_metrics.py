@@ -1,6 +1,6 @@
 import numpy as np
 
-from odtoy.metrics import count_loss, geh, geh_pass_rate
+from odtoy.metrics import count_loss, geh, geh_pass_rate, od_rel_error, od_total_error
 
 
 def test_count_loss_zero_on_perfect_match():
@@ -39,3 +39,16 @@ def test_geh_pass_rate():
     counts = np.array([100.0, 205.0, 500.0])
     sensors = np.array([0, 1, 2])
     assert np.isclose(geh_pass_rate(flows, counts, sensors), 2.0 / 3.0)
+
+
+def test_od_rel_error_ignores_zero_cells():
+    od_true = np.array([[0.0, 10.0], [20.0, 0.0]])
+    od_est = np.array([[5.0, 11.0], [18.0, 3.0]])
+    # (0.1 + 0.1) / 2, the diagonal must not count
+    assert np.isclose(od_rel_error(od_est, od_true), 0.1)
+
+
+def test_od_total_error_sign():
+    od_true = np.array([[0.0, 10.0], [10.0, 0.0]])
+    assert np.isclose(od_total_error(1.5 * od_true, od_true), 0.5)
+    assert np.isclose(od_total_error(0.5 * od_true, od_true), -0.5)

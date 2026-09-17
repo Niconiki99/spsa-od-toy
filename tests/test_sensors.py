@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from odtoy import grid_network
-from odtoy.sensors import choose_sensors, measure
+from odtoy.sensors import choose_sensors, measure, split_sensors
 
 
 def test_choose_sensors_distinct_and_sorted():
@@ -38,3 +38,18 @@ def test_measure_no_noise():
     sensors = np.array([2, 5])
     counts = measure(flows, sensors, np.random.default_rng(0), noise_sd=0.0)
     assert np.array_equal(counts, np.array([2.0, 5.0]))
+
+
+def test_split_sensors_partition():
+    sensors = np.arange(0, 40, 2)
+    fit, hold = split_sensors(sensors, 5, np.random.default_rng(0))
+    assert hold.shape == (5,)
+    assert fit.shape == (15,)
+    assert set(fit.tolist()) | set(hold.tolist()) == set(sensors.tolist())
+    assert not set(fit.tolist()) & set(hold.tolist())
+
+
+def test_split_sensors_rejects_bad_holdout():
+    sensors = np.arange(5)
+    with pytest.raises(ValueError):
+        split_sensors(sensors, 5, np.random.default_rng(0))

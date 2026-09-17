@@ -13,10 +13,10 @@ What is in the package so far:
 - `odtoy/assignment.py`: BPR costs + MSA assignment
 - `odtoy/simulator.py`: `Simulator(od, seed) -> link flows`, counts its own calls
 - `odtoy/days.py`: gravity-model mean OD, daily variations, biased prior
-- `odtoy/sensors.py`: sensor placement and noisy counts
+- `odtoy/sensors.py`: sensor placement, noisy counts, fit/holdout split
 - `odtoy/scenario.py`: `make_scenario(seed)` bundles network, simulator,
   sensors, prior and a list of days (true OD hidden, counts observed)
-- `odtoy/metrics.py`: relative count loss and GEH statistic
+- `odtoy/metrics.py`: relative count loss, GEH statistic, OD recovery errors
 
 Route choice is all-or-nothing on the shortest path, so the OD -> flows
 map is not differentiable. The seed changes link capacities slightly, as
@@ -35,5 +35,4 @@ python examples/make_days.py
 
 ## Next
 
-- OD recovery metrics and a held-out sensor split
 - a first SPSA run directly on the OD cells
