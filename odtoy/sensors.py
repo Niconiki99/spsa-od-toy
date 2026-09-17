@@ -22,3 +22,15 @@ def measure(flows: np.ndarray, sensors: np.ndarray, rng: np.random.Generator, no
     """
     obs = flows[sensors] * (1.0 + noise_sd * rng.standard_normal(sensors.shape[0]))
     return np.maximum(obs, 0.0)
+
+
+def split_sensors(sensors: np.ndarray, n_holdout: int, rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
+    """Split sensors into (fit, holdout) sets.
+
+    Methods only see the fit set; the holdout set measures whether a
+    correction improves flows where no count constrained it.
+    """
+    if not 0 <= n_holdout < sensors.shape[0]:
+        raise ValueError("n_holdout must leave at least one sensor to fit")
+    perm = rng.permutation(sensors.shape[0])
+    return np.sort(sensors[perm[n_holdout:]]), np.sort(sensors[perm[:n_holdout]])
