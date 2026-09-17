@@ -7,11 +7,16 @@ sensor counts. The idea is to treat the simulator as a black box (no
 gradients) and test gradient-free optimisation on top of it, starting
 with SPSA.
 
-For now the repo only contains the simulator:
+What is in the package so far:
 
 - `odtoy/network.py`: synthetic grid network with random link capacities
 - `odtoy/assignment.py`: BPR costs + MSA assignment
 - `odtoy/simulator.py`: `Simulator(od, seed) -> link flows`, counts its own calls
+- `odtoy/days.py`: gravity-model mean OD, daily variations, biased prior
+- `odtoy/sensors.py`: sensor placement and noisy counts
+- `odtoy/scenario.py`: `make_scenario(seed)` bundles network, simulator,
+  sensors, prior and a list of days (true OD hidden, counts observed)
+- `odtoy/metrics.py`: relative count loss and GEH statistic
 
 Route choice is all-or-nothing on the shortest path, so the OD -> flows
 map is not differentiable. The seed changes link capacities slightly, as
@@ -25,10 +30,10 @@ pip install -r requirements.txt
 pip install -e .
 pytest
 python examples/run_simulator.py
+python examples/make_days.py
 ```
 
 ## Next
 
-- generate synthetic "days" (true OD, sensor subset, noisy counts)
-- a loss between simulated and measured flows
+- OD recovery metrics and a held-out sensor split
 - a first SPSA run directly on the OD cells
