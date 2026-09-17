@@ -9,5 +9,15 @@ flows that can be compared with sensor counts.
 from .network import Network, grid_network
 from .assignment import assign, bpr_time
 from .simulator import Simulator
+from .scenario import Day, Scenario, make_scenario
 
-__all__ = ["Network", "grid_network", "assign", "bpr_time", "Simulator"]
+__all__ = [
+    "Network",
+    "grid_network",
+    "assign",
+    "bpr_time",
+    "Simulator",
+    "Day",
+    "Scenario",
+    "make_scenario",
+]
