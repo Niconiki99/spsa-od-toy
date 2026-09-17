@@ -38,3 +38,19 @@ def geh(flows: np.ndarray, counts: np.ndarray, sensors: np.ndarray) -> np.ndarra
 def geh_pass_rate(flows: np.ndarray, counts: np.ndarray, sensors: np.ndarray, threshold: float = 5.0) -> float:
     """Fraction of sensors with GEH below ``threshold``."""
     return float(np.mean(geh(flows, counts, sensors) < threshold))
+
+
+def od_rel_error(od_est: np.ndarray, od_true: np.ndarray) -> float:
+    """Mean absolute relative error over the cells with non-zero true demand.
+
+    Only computable on synthetic data, where the true OD is known: this
+    is the number that tells whether a method is estimating demand or
+    merely fitting the sensors.
+    """
+    mask = od_true > 0
+    return float(np.mean(np.abs(od_est[mask] / od_true[mask] - 1.0)))
+
+
+def od_total_error(od_est: np.ndarray, od_true: np.ndarray) -> float:
+    """Signed relative error on total trips (positive = over-estimate)."""
+    return float(od_est.sum() / od_true.sum() - 1.0)
