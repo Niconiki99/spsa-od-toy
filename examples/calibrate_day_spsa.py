@@ -1,8 +1,9 @@
-"""Baseline: SPSA on the OD cells of one day. Reports fit, holdout and OD recovery."""
+"""Baselines on one day: SPSA on the OD cells vs linearised GLS. Reports fit, holdout and OD recovery."""
 
 import numpy as np
 
 from odtoy.calibrate import calibrate_od_spsa
+from odtoy.gls import calibrate_od_gls
 from odtoy.metrics import count_loss, geh_pass_rate, od_rel_error, od_total_error
 from odtoy.scenario import make_scenario
 from odtoy.sensors import split_sensors
@@ -31,8 +32,14 @@ def main() -> None:
     od_est, history = calibrate_od_spsa(sc, day, sc.sensors_fit, n_iter=300, a=1.0, c=0.05, reg=0.01, seed=0)
     n_calls = sc.sim.n_calls
     report("spsa", sc, day, od_est)
-    print(f"\nsimulator calls: {n_calls}   loss estimate first/last 20 iters: "
+    print(f"         simulator calls: {n_calls}   loss estimate first/last 20 iters: "
           f"{history[:20].mean():.4f} -> {history[-20:].mean():.4f}")
+
+    sc.sim.reset_counter()
+    od_gls = calibrate_od_gls(sc, day, sc.sensors_fit, n_outer=3, reg=1e-3, seed=0)
+    n_calls = sc.sim.n_calls
+    report("gls", sc, day, od_gls)
+    print(f"         simulator calls: {n_calls}")
 
 
 if __name__ == "__main__":
