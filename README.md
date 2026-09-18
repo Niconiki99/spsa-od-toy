@@ -18,6 +18,7 @@ What is in the package so far:
   sensors, prior and a list of days (true OD hidden, counts observed)
 - `odtoy/metrics.py`: relative count loss, GEH statistic, OD recovery errors
 - `odtoy/spsa.py`: SPSA on a generic parameter vector, with common random numbers
+- `odtoy/calibrate.py`: baseline, SPSA directly on the log-factors of the OD cells
 
 Route choice is all-or-nothing on the shortest path, so the OD -> flows
 map is not differentiable. The seed changes link capacities slightly, as
@@ -32,8 +33,10 @@ pip install -e .
 pytest
 python examples/run_simulator.py
 python examples/make_days.py
+python examples/calibrate_day_spsa.py
 ```
 
 ## Next
 
-- a first SPSA run directly on the OD cells
+- a GLS baseline using the assignment matrix
+- a low-dimensional correction (zone factors) to compare with the per-cell one
