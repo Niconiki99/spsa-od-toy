@@ -47,3 +47,25 @@ def test_assign_spreads_flow_under_congestion():
     aon = all_or_nothing(net, od, net.fft)
     eq = assign(net, od, n_iter=30)
     assert np.count_nonzero(eq) > np.count_nonzero(aon)
+
+
+def test_aon_incidence_matches_all_or_nothing():
+    from odtoy.assignment import aon_incidence
+
+    net = grid_network(4, 4, seed=1)
+    od = np.random.default_rng(0).uniform(0, 5, (16, 16))
+    np.fill_diagonal(od, 0.0)
+    P = aon_incidence(net, net.fft)
+    assert P.shape == (net.n_links, 256)
+    assert np.allclose(P @ od.ravel(), all_or_nothing(net, od, net.fft))
+
+
+def test_assign_matrix_reproduces_flows():
+    net = grid_network(4, 4, seed=2)
+    od = np.random.default_rng(1).uniform(0, 10, (16, 16))
+    np.fill_diagonal(od, 0.0)
+    flow = assign(net, od, n_iter=15)
+    flow_m, A = assign(net, od, n_iter=15, return_matrix=True)
+    assert np.allclose(flow_m, flow)
+    assert np.allclose(A @ od.ravel(), flow)
+    assert np.all(A >= 0)

@@ -47,5 +47,11 @@ class Simulator:
         net = self.daily_network(seed) if self.cap_jitter > 0 else self.net
         return assign(net, od, n_iter=self.n_iter, alpha=self.alpha, beta=self.beta)
 
+    def assignment_matrix(self, od: np.ndarray, seed: int = 0) -> tuple[np.ndarray, np.ndarray]:
+        """Flows and the MSA-averaged incidence matrix at ``od``. Costs one call."""
+        self.n_calls += 1
+        net = self.daily_network(seed) if self.cap_jitter > 0 else self.net
+        return assign(net, od, n_iter=self.n_iter, alpha=self.alpha, beta=self.beta, return_matrix=True)
+
     def reset_counter(self) -> None:
         self.n_calls = 0

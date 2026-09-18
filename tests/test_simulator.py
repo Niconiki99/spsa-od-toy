@@ -35,3 +35,12 @@ def test_no_jitter_is_deterministic_across_seeds():
     sim = Simulator(grid_network(3, 3), cap_jitter=0.0)
     od = _od(9)
     assert np.array_equal(sim(od, seed=1), sim(od, seed=99))
+
+
+def test_assignment_matrix_counts_a_call():
+    sim = Simulator(grid_network(3, 3))
+    od = _od(9)
+    flows, A = sim.assignment_matrix(od, seed=4)
+    assert sim.n_calls == 1
+    assert np.allclose(flows, sim(od, seed=4))
+    assert np.allclose(A @ od.ravel(), flows)
