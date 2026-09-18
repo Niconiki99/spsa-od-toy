@@ -17,6 +17,7 @@ What is in the package so far:
 - `odtoy/scenario.py`: `make_scenario(seed)` bundles network, simulator,
   sensors, prior and a list of days (true OD hidden, counts observed)
 - `odtoy/metrics.py`: relative count loss, GEH statistic, OD recovery errors
+- `odtoy/spsa.py`: SPSA on a generic parameter vector, with common random numbers
 
 Route choice is all-or-nothing on the shortest path, so the OD -> flows
 map is not differentiable. The seed changes link capacities slightly, as
