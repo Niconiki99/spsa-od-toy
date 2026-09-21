@@ -18,7 +18,7 @@ What is in the package so far:
   sensors, prior and a list of days (true OD hidden, counts observed)
 - `odtoy/metrics.py`: relative count loss, GEH statistic, OD recovery errors
 - `odtoy/spsa.py`: SPSA on a generic parameter vector, with common random numbers
-- `odtoy/calibrate.py`: baseline, SPSA directly on the log-factors of the OD cells
+- `odtoy/calibrate.py`: SPSA calibration, per OD cell or per zone factor
 - `odtoy/gls.py`: baseline, iterated linearised GLS using the assignment matrix
 
 Route choice is all-or-nothing on the shortest path, so the OD -> flows
@@ -39,4 +39,3 @@ python examples/calibrate_day_spsa.py
 
 ## Next
 
-- a low-dimensional correction (zone factors) to compare with the per-cell one

@@ -1,4 +1,8 @@
-"""Baselines on one day: SPSA on the OD cells vs linearised GLS. Reports fit, holdout and OD recovery."""
+"""Baselines on one day: SPSA (per cell, per zone) vs linearised GLS.
+
+Reports fit loss, held-out loss and OD recovery, so that fitting the
+sensors can be told apart from estimating the demand.
+"""
 
 import numpy as np
 
@@ -31,7 +35,15 @@ def main() -> None:
     sc.sim.reset_counter()
     od_est, history = calibrate_od_spsa(sc, day, sc.sensors_fit, n_iter=300, a=1.0, c=0.05, reg=0.01, seed=0)
     n_calls = sc.sim.n_calls
-    report("spsa", sc, day, od_est)
+    report("cells", sc, day, od_est)
+    print(f"         simulator calls: {n_calls}   loss estimate first/last 20 iters: "
+          f"{history[:20].mean():.4f} -> {history[-20:].mean():.4f}")
+
+    sc.sim.reset_counter()
+    od_zone, history = calibrate_od_spsa(sc, day, sc.sensors_fit, n_iter=300, a=0.3, c=0.05, reg=0.01,
+                                         kind="zones", seed=0)
+    n_calls = sc.sim.n_calls
+    report("zones", sc, day, od_zone)
     print(f"         simulator calls: {n_calls}   loss estimate first/last 20 iters: "
           f"{history[:20].mean():.4f} -> {history[-20:].mean():.4f}")
 
