@@ -20,6 +20,9 @@ What is in the package so far:
 - `odtoy/spsa.py`: SPSA on a generic parameter vector, with common random numbers
 - `odtoy/calibrate.py`: SPSA calibration, per OD cell or per zone factor
 - `odtoy/gls.py`: baseline, iterated linearised GLS using the assignment matrix
+- `odtoy/net.py`: small MLP whose weights are a single flat vector
+- `odtoy/amortised.py`: one network mapping a day's counts to OD factors,
+  trained across days with SPSA through the simulator
 
 Route choice is all-or-nothing on the shortest path, so the OD -> flows
 map is not differentiable. The seed changes link capacities slightly, as
@@ -35,7 +38,11 @@ pytest
 python examples/run_simulator.py
 python examples/make_days.py
 python examples/calibrate_day_spsa.py
+python examples/amortised_network.py
 ```
 
 ## Next
 
+- multi-seed experiments: run every method over several scenarios and
+  report medians rather than single runs
+- plots of loss against number of simulations
