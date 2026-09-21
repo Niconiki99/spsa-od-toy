@@ -1,7 +1,11 @@
-"""Baseline calibration: SPSA directly on the OD cells.
+"""SPSA calibration of the OD matrix under two parametrisations.
 
-Parameters are log-factors on the non-zero cells of the prior, so the
-corrected matrix stays positive and theta = 0 is the prior itself.
+- ``cells``: one log-factor per non-zero cell of the prior (baseline)
+- ``zones``: a global log-scale plus one log-factor per origin zone and
+  one per destination zone, i.e. 2n+1 parameters instead of ~n^2
+
+In both cases the corrected matrix stays positive and theta = 0 is the
+prior itself.
 """
 
 from __future__ import annotations
@@ -25,18 +29,36 @@ def od_from_log_factors(od_prior: np.ndarray, theta: np.ndarray, active: np.ndar
     return od
 
 
-def make_day_loss(sc: Scenario, day: Day, sensors_fit: np.ndarray, reg: float = 0.0):
+def od_from_zone_factors(od_prior: np.ndarray, theta: np.ndarray) -> np.ndarray:
+    """OD = prior * exp(s) * exp(o)[:, None] * exp(d)[None, :] with theta = [s, o, d]."""
+    n = od_prior.shape[0]
+    s, o, d = theta[0], theta[1 : 1 + n], theta[1 + n :]
+    return od_prior * np.exp(s) * np.exp(o)[:, None] * np.exp(d)[None, :]
+
+
+def parametrisation(od_prior: np.ndarray, kind: str):
+    """Return ``(n_params, theta -> od)`` for ``kind`` in {"cells", "zones"}."""
+    if kind == "cells":
+        active = active_cells(od_prior)
+        return int(active.sum()), lambda theta: od_from_log_factors(od_prior, theta, active)
+    if kind == "zones":
+        return 2 * od_prior.shape[0] + 1, lambda theta: od_from_zone_factors(od_prior, theta)
+    raise ValueError(f"unknown parametrisation {kind!r}")
+
+
+def make_day_loss(sc: Scenario, day: Day, sensors_fit: np.ndarray, reg: float = 0.0, kind: str = "cells"):
     """Build ``loss(theta, seed)`` for one day.
 
     The seed goes to the simulator, so an SPSA perturbation pair shares
     the same daily conditions. ``reg`` penalises the mean squared
     log-factor, i.e. the distance from the prior.
     """
-    active = active_cells(sc.od_prior)
+    _, to_od = parametrisation(sc.od_prior, kind)
+    counts_fit = day.counts[np.isin(sc.sensors, sensors_fit)]
 
     def loss(theta: np.ndarray, seed: int) -> float:
-        flows = sc.sim(od_from_log_factors(sc.od_prior, theta, active), seed=seed)
-        return count_loss(flows, day.counts[np.isin(sc.sensors, sensors_fit)], sensors_fit) + reg * float(np.mean(theta**2))
+        flows = sc.sim(to_od(theta), seed=seed)
+        return count_loss(flows, counts_fit, sensors_fit) + reg * float(np.mean(theta**2))
 
     return loss
 
@@ -51,10 +73,11 @@ def calibrate_od_spsa(
     reg: float = 0.0,
     clip: float | None = None,
     seed: int = 0,
+    kind: str = "cells",
     **spsa_kwargs,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Run SPSA on the log-factors of every active cell. Returns (od_est, history)."""
-    active = active_cells(sc.od_prior)
-    loss = make_day_loss(sc, day, sensors_fit, reg=reg)
-    theta, history = spsa(loss, np.zeros(active.sum()), n_iter, a=a, c=c, clip=clip, seed=seed, **spsa_kwargs)
-    return od_from_log_factors(sc.od_prior, theta, active), history
+    """Run SPSA under the chosen parametrisation. Returns (od_est, history)."""
+    n_params, to_od = parametrisation(sc.od_prior, kind)
+    loss = make_day_loss(sc, day, sensors_fit, reg=reg, kind=kind)
+    theta, history = spsa(loss, np.zeros(n_params), n_iter, a=a, c=c, clip=clip, seed=seed, **spsa_kwargs)
+    return to_od(theta), history
