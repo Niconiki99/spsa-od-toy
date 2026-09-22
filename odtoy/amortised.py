@@ -65,6 +65,7 @@ def make_amortised_loss(
     """
     in_fit = np.isin(sc.sensors, sensors_fit)
     feats = [day_features(d, b, sc, sensors_fit) for d, b in zip(days, baselines)]
+    batch_size = None if batch_size is None else min(batch_size, len(days))
 
     def loss(theta: np.ndarray, seed: int) -> float:
         rng = np.random.default_rng(seed)

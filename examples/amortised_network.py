@@ -13,27 +13,12 @@ import numpy as np
 
 from odtoy.amortised import baseline_flows, day_features, predict_od, train_amortised
 from odtoy.calibrate import calibrate_od_spsa
-from odtoy.metrics import count_loss, od_rel_error, od_total_error
+from odtoy.experiments import evaluate
 from odtoy.net import MLP
 from odtoy.scenario import make_scenario
 from odtoy.sensors import split_sensors
 
 N_TRAIN, N_TEST = 12, 4
-
-
-def evaluate(sc, days, od_of_day, fit, hold, in_fit):
-    """Average metrics over a list of days."""
-    rows = []
-    for day in days:
-        od = od_of_day(day)
-        flows = sc.sim(od, seed=day.seed)
-        rows.append((
-            count_loss(flows, day.counts[in_fit], fit),
-            count_loss(flows, day.counts[~in_fit], hold),
-            od_rel_error(od, day.od_true),
-            od_total_error(od, day.od_true),
-        ))
-    return np.mean(rows, axis=0)
 
 
 def show(label, stats, calls):
@@ -44,7 +29,6 @@ def show(label, stats, calls):
 def main() -> None:
     sc = make_scenario(rows=4, cols=4, n_days=N_TRAIN + N_TEST, n_sensors=24, seed=0)
     fit, hold = split_sensors(sc.sensors, 6, np.random.default_rng(0))
-    in_fit = np.isin(sc.sensors, fit)
     train, test = sc.days[:N_TRAIN], sc.days[N_TRAIN:]
 
     base_train = baseline_flows(sc, train)
@@ -52,12 +36,12 @@ def main() -> None:
 
     print(f"zones={sc.net.n_zones} sensors={len(fit)}+{len(hold)} "
           f"train_days={N_TRAIN} test_days={N_TEST}\n")
-    show("prior", evaluate(sc, test, lambda d: sc.od_prior, fit, hold, in_fit), 0)
+    show("prior", evaluate(sc, test, lambda d: sc.od_prior, fit, hold), 0)
 
     # per-day calibration: a fresh SPSA run for every test day
     sc.sim.reset_counter()
     per_day = {d.seed: calibrate_od_spsa(sc, d, fit, n_iter=200, a=0.3, kind="zones", seed=0)[0] for d in test}
-    show("per-day", evaluate(sc, test, lambda d: per_day[d.seed], fit, hold, in_fit),
+    show("per-day", evaluate(sc, test, lambda d: per_day[d.seed], fit, hold),
          sc.sim.n_calls // N_TEST)
 
     # amortised: train once, then one forward pass per test day
@@ -67,7 +51,7 @@ def main() -> None:
     theta, history = train_amortised(sc, net, train, fit, base_train, batch_size=4, seed=0)
     train_calls = sc.sim.n_calls
     show("amortised", evaluate(sc, test, lambda d: predict_od(sc, net, theta, day_features(d, base_test[d.seed], sc, fit)),
-                               fit, hold, in_fit), 1)
+                               fit, hold), 1)
     print(f"\nnetwork: {net.n_params} weights, trained in {time.perf_counter()-t0:.0f}s "
           f"with {train_calls} simulations ({history[:20].mean():.4f} -> {history[-20:].mean():.4f})")
 

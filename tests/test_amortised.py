@@ -79,3 +79,13 @@ def test_training_reduces_the_loss():
     theta, history = train_amortised(sc, net, sc.days, sc.sensors, bases, n_iter=40, seed=0)
     assert history.shape == (40,)
     assert loss(theta, 0) < loss(net.init_params(np.random.default_rng(0)), 0)
+
+
+def test_batch_size_is_capped_at_the_number_of_days():
+    sc = _scenario()
+    net = MLP((12, 4, 33))
+    bases = baseline_flows(sc, sc.days)
+    sc.sim.reset_counter()
+    loss = make_amortised_loss(sc, net, sc.days, sc.sensors, bases, batch_size=99)
+    loss(np.zeros(net.n_params), 0)
+    assert sc.sim.n_calls == len(sc.days)
