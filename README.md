@@ -23,6 +23,7 @@ What is in the package so far:
 - `odtoy/net.py`: small MLP whose weights are a single flat vector
 - `odtoy/amortised.py`: one network mapping a day's counts to OD factors,
   trained across days with SPSA through the simulator
+- `odtoy/experiments.py`: run every method on the same scenarios, aggregate over seeds
 
 Route choice is all-or-nothing on the shortest path, so the OD -> flows
 map is not differentiable. The seed changes link capacities slightly, as
@@ -39,10 +40,9 @@ python examples/run_simulator.py
 python examples/make_days.py
 python examples/calibrate_day_spsa.py
 python examples/amortised_network.py
+python examples/compare_methods.py
 ```
 
 ## Next
 
-- multi-seed experiments: run every method over several scenarios and
-  report medians rather than single runs
 - plots of loss against number of simulations
