@@ -7,4 +7,5 @@ dist/
 .pytest_cache/
 output/
 *.png
+!figures/*.png
 .DS_Store
