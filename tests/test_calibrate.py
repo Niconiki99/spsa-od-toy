@@ -4,6 +4,7 @@ from odtoy.calibrate import (
     active_cells,
     calibrate_od_spsa,
     make_day_loss,
+    MAX_LOG_FACTOR,
     od_from_log_factors,
     od_from_zone_factors,
     parametrisation,
@@ -79,3 +80,11 @@ def test_zone_calibration_reduces_loss_and_od_error():
     after = count_loss(sc.sim(od_est, seed=0), day.counts, sc.sensors)
     assert after < before
     assert od_rel_error(od_est, day.od_true) < od_rel_error(sc.od_prior, day.od_true)
+
+
+def test_log_factors_are_bounded():
+    sc = _small_scenario()
+    active = active_cells(sc.od_prior)
+    od = od_from_log_factors(sc.od_prior, 1e4 * np.ones(active.sum()), active)
+    assert np.all(np.isfinite(od))
+    assert od[active].max() <= sc.od_prior[active].max() * np.exp(MAX_LOG_FACTOR) + 1e-9

@@ -16,6 +16,10 @@ from .metrics import count_loss
 from .scenario import Day, Scenario
 from .spsa import spsa
 
+#: Largest log-factor allowed on a cell. exp(5) is already an extreme
+#: correction, and unbounded factors make the BPR costs overflow.
+MAX_LOG_FACTOR = 5.0
+
 
 def active_cells(od_prior: np.ndarray) -> np.ndarray:
     """Boolean mask of the cells that carry demand in the prior."""
@@ -25,14 +29,15 @@ def active_cells(od_prior: np.ndarray) -> np.ndarray:
 def od_from_log_factors(od_prior: np.ndarray, theta: np.ndarray, active: np.ndarray) -> np.ndarray:
     """OD = prior * exp(theta) on the active cells, prior elsewhere."""
     od = od_prior.copy()
-    od[active] = od_prior[active] * np.exp(theta)
+    od[active] = od_prior[active] * np.exp(np.clip(theta, -MAX_LOG_FACTOR, MAX_LOG_FACTOR))
     return od
 
 
 def od_from_zone_factors(od_prior: np.ndarray, theta: np.ndarray) -> np.ndarray:
     """OD = prior * exp(s) * exp(o)[:, None] * exp(d)[None, :] with theta = [s, o, d]."""
     n = od_prior.shape[0]
-    s, o, d = theta[0], theta[1 : 1 + n], theta[1 + n :]
+    t = np.clip(theta, -MAX_LOG_FACTOR, MAX_LOG_FACTOR)
+    s, o, d = t[0], t[1 : 1 + n], t[1 + n :]
     return od_prior * np.exp(s) * np.exp(o)[:, None] * np.exp(d)[None, :]
 
 
