@@ -24,6 +24,7 @@ What is in the package so far:
 - `odtoy/amortised.py`: one network mapping a day's counts to OD factors,
   trained across days with SPSA through the simulator
 - `odtoy/experiments.py`: run every method on the same scenarios, aggregate over seeds
+- `odtoy/plots.py`: convergence and cost figures, written to `figures/`
 
 Route choice is all-or-nothing on the shortest path, so the OD -> flows
 map is not differentiable. The seed changes link capacities slightly, as
@@ -41,8 +42,9 @@ python examples/make_days.py
 python examples/calibrate_day_spsa.py
 python examples/amortised_network.py
 python examples/compare_methods.py
+python examples/make_figures.py
 ```
 
 ## Next
 
-- plots of loss against number of simulations
+- a results section: the multi-seed table and the figures, with a reading of them
